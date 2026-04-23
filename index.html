@@ -1,417 +1,1153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
-<title>Away Game — Christian Parent’s Playbook</title>
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>⚾ Pitch Tracker</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #f8f9fa; font-family: 'DM Sans', system-ui, sans-serif; color: #1a1a1a; line-height: 1.6; }
-button { cursor: pointer; }
-.progress-bar { height: 10px; background: #e9ecef; border-radius: 9999px; overflow: hidden; }
-.progress-fill { height: 100%; transition: width 0.5s ease; }
-.team-card { background: #fff; border: 1px solid #dee2e6; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
-.delete-btn { background: #fee2e2; color: #ef4444; border: none; width: 32px; height: 32px; border-radius: 8px; font-size: 18px; }
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap');
+ 
+  :root {
+    --green: #1a3a1a;
+    --green-mid: #2a5c2a;
+    --green-light: #3d7a3d;
+    --dirt: #c4854a;
+    --dirt-light: #e0a96d;
+    --cream: #f5edd8;
+    --chalk: #f0ebe0;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --gold: #d4af37;
+    --gold-light: #f0cc5a;
+    --navy: #0d1f3c;
+    --sky: #4a90c4;
+    --white: #ffffff;
+    --warning: #e67e22;
+    --danger: #c0392b;
+    --text-dark: #1a1a1a;
+    --text-mid: #444;
+    --shadow: 0 4px 20px rgba(0,0,0,0.35);
+  }
+ 
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+ 
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--green);
+    min-height: 100vh;
+    color: var(--cream);
+    background-image:
+      radial-gradient(ellipse 120% 60% at 50% -10%, rgba(61,122,61,0.6) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.03) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.03) 40px);
+  }
+ 
+  /* HEADER */
+  .header {
+    background: var(--navy);
+    padding: 10px 16px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid var(--gold);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .header-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .header-logo span { color: var(--cream); font-size: 1rem; display: block; letter-spacing: 4px; }
+  .header-actions { display: flex; gap: 8px; }
+  .btn-sm {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-outline { background: transparent; border: 1.5px solid var(--gold); color: var(--gold); }
+  .btn-outline:active { background: var(--gold); color: var(--navy); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:active { background: var(--red-light); }
+ 
+  /* SCREENS */
+  .screen { display: none; padding: 0 0 100px; }
+  .screen.active { display: block; }
+ 
+  /* SETUP SCREEN */
+  .setup-wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+  .setup-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--gold);
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .field-group { margin-bottom: 16px; }
+  .field-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dirt-light);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .field-input {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    color: var(--cream);
+    font-family: 'Barlow', sans-serif;
+    font-size: 1rem;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field-input:focus { border-color: var(--gold); }
+  .field-input::placeholder { color: rgba(245,237,216,0.3); }
+ 
+  .limit-row { display: flex; gap: 10px; align-items: center; }
+  .limit-row .field-input { flex: 1; }
+  .limit-badge {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--cream);
+    background: var(--green-mid);
+    padding: 10px 14px;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+ 
+  .btn-start {
+    width: 100%;
+    background: var(--gold);
+    color: var(--navy);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 3px;
+    border: none;
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    margin-top: 24px;
+    transition: all 0.15s;
+    box-shadow: 0 4px 15px rgba(212,175,55,0.4);
+  }
+  .btn-start:active { transform: scale(0.97); background: var(--gold-light); }
+ 
+  /* SAVED GAMES */
+  .saved-section { margin-top: 28px; }
+  .saved-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dirt-light);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .saved-game {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .saved-game:active { background: rgba(255,255,255,0.1); }
+  .saved-game-info { flex: 1; }
+  .saved-game-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem; }
+  .saved-game-meta { font-size: 0.78rem; color: rgba(245,237,216,0.5); margin-top: 2px; }
+  .saved-game-pitches {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    color: var(--gold);
+    margin: 0 12px;
+  }
+  .saved-game-delete {
+    background: none; border: none; color: rgba(255,255,255,0.25);
+    font-size: 1.1rem; cursor: pointer; padding: 4px 6px;
+    transition: color 0.15s;
+  }
+  .saved-game-delete:active { color: var(--red-light); }
+ 
+  /* TRACKER SCREEN */
+  /* Count Display */
+  .count-bar {
+    background: var(--navy);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 2px solid var(--green-mid);
+  }
+  .count-pitcher {
+    flex: 1;
+    min-width: 0;
+  }
+  .count-pitcher-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    color: var(--cream);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .count-pitcher-date { font-size: 0.72rem; color: rgba(245,237,216,0.45); letter-spacing: 1px; }
+  .count-bso {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .bso-group { text-align: center; }
+  .bso-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(245,237,216,0.4);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .bso-dots { display: flex; gap: 4px; }
+  .bso-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    background: transparent;
+    transition: all 0.2s;
+  }
+  .bso-dot.active-b { background: var(--sky); border-color: var(--sky); }
+  .bso-dot.active-s { background: var(--gold); border-color: var(--gold); }
+  .bso-dot.active-o { background: var(--red); border-color: var(--red); }
+ 
+  .count-total {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--green-mid);
+    border-radius: 8px;
+    padding: 6px 12px;
+    min-width: 60px;
+  }
+  .count-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    line-height: 1;
+    color: var(--cream);
+    transition: color 0.3s;
+  }
+  .count-num.warn { color: var(--warning); }
+  .count-num.danger { color: var(--red-light); }
+  .count-num.over { color: var(--red-light); animation: pulse 0.8s infinite; }
+  .count-label { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(245,237,216,0.4); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
+ 
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+ 
+  /* Pitch Limit Warning Banner */
+  .warning-banner {
+    background: var(--warning);
+    color: white;
+    text-align: center;
+    padding: 8px 16px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    display: none;
+  }
+  .warning-banner.show { display: block; }
+  .warning-banner.over { background: var(--red); }
+ 
+  /* Inning control */
+  .inning-bar {
+    background: rgba(0,0,0,0.2);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .inning-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    color: var(--cream);
+  }
+  .inning-ctrl { display: flex; gap: 8px; align-items: center; }
+  .inning-btn {
+    background: var(--green-mid);
+    border: none;
+    color: var(--cream);
+    font-size: 1.1rem;
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .inning-btn:active { background: var(--green-light); }
+  .inning-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: var(--gold);
+    min-width: 30px;
+    text-align: center;
+  }
+ 
+  /* Pitch Buttons */
+  .pitch-section { padding: 14px 16px 8px; }
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.65rem;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--dirt-light);
+    margin-bottom: 8px;
+  }
+  .pitch-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .pitch-btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 10px 4px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    line-height: 1.2;
+  }
+  .pitch-btn[data-type="Fastball"]  { background: rgba(224,74,74,0.15); border-color: rgba(224,74,74,0.4); color: #e84a4a; }
+  .pitch-btn[data-type="Curveball"] { background: rgba(100,160,220,0.15); border-color: rgba(100,160,220,0.4); color: #64a0dc; }
+  .pitch-btn[data-type="Slider"]    { background: rgba(212,175,55,0.15); border-color: rgba(212,175,55,0.4); color: var(--gold); }
+  .pitch-btn[data-type="Changeup"]  { background: rgba(100,200,140,0.15); border-color: rgba(100,200,140,0.4); color: #64c88c; }
+  .pitch-btn[data-type="Other"]     { background: rgba(160,130,200,0.15); border-color: rgba(160,130,200,0.4); color: #a082c8; }
+  .pitch-btn.selected { filter: brightness(1.4); transform: scale(1.04); box-shadow: 0 0 12px currentColor; }
+  .pitch-btn:active { transform: scale(0.95); }
+ 
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .result-btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 11px 4px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .result-btn[data-result="Ball"]     { background: rgba(74,144,196,0.15); border-color: rgba(74,144,196,0.4); color: var(--sky); }
+  .result-btn[data-result="Strike"]   { background: rgba(212,175,55,0.15); border-color: rgba(212,175,55,0.4); color: var(--gold); }
+  .result-btn[data-result="Foul"]     { background: rgba(220,180,80,0.12); border-color: rgba(220,180,80,0.3); color: #deb44a; }
+  .result-btn[data-result="In Play"]  { background: rgba(60,180,80,0.15); border-color: rgba(60,180,80,0.4); color: #3cb850; }
+  .result-btn.selected { filter: brightness(1.4); transform: scale(1.03); box-shadow: 0 0 10px currentColor; }
+  .result-btn:active { transform: scale(0.95); }
+ 
+  /* LOG PITCH button */
+  .log-wrap { padding: 10px 16px 0; }
+  .btn-log {
+    width: 100%;
+    background: var(--gold);
+    color: var(--navy);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 3px;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 4px 15px rgba(212,175,55,0.3);
+  }
+  .btn-log:disabled { background: rgba(212,175,55,0.25); color: rgba(13,31,60,0.4); box-shadow: none; cursor: not-allowed; }
+  .btn-log:not(:disabled):active { transform: scale(0.97); background: var(--gold-light); }
+ 
+  /* UNDO ROW */
+  .undo-row { padding: 8px 16px 0; text-align: right; }
+  .btn-undo {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.4);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-undo:active { color: var(--cream); border-color: rgba(255,255,255,0.4); }
+ 
+  /* STATS PANEL */
+  .stats-panel { padding: 14px 16px 0; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .stat-card {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .stat-card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dirt-light);
+    margin-bottom: 8px;
+  }
+  .breakdown-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+  .breakdown-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(245,237,216,0.7);
+  }
+  .breakdown-bar-wrap { flex: 1; margin: 0 8px; height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+  .breakdown-bar { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .breakdown-count {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    min-width: 20px;
+    text-align: right;
+  }
+  .bar-fb { background: #e84a4a; }
+  .bar-cb { background: #64a0dc; }
+  .bar-sl { background: var(--gold); }
+  .bar-ch { background: #64c88c; }
+  .bar-ot { background: #a082c8; }
+  .bar-ball { background: var(--sky); }
+  .bar-strike { background: var(--gold); }
+  .bar-foul { background: #deb44a; }
+  .bar-inplay { background: #3cb850; }
+ 
+  /* Inning breakdown */
+  .inning-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .inning-table th {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.6rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--dirt-light);
+    padding: 4px 6px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .inning-table td {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    padding: 5px 6px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .inning-table tr:last-child td { border-bottom: none; }
+  .inning-table .current-row td { color: var(--gold); }
+  .pitch-log-section { padding: 12px 16px 0; }
+  .log-list {
+    max-height: 180px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    padding: 6px 4px;
+  }
+  .log-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.78rem;
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-num { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; color: rgba(245,237,216,0.3); min-width: 24px; }
+  .log-inning { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.65rem; color: rgba(245,237,216,0.35); min-width: 20px; }
+  .log-type { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; flex: 1; }
+  .log-result { font-family: 'Barlow Condensed', sans-serif; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+  .res-ball { background: rgba(74,144,196,0.2); color: var(--sky); }
+  .res-strike { background: rgba(212,175,55,0.2); color: var(--gold); }
+  .res-foul { background: rgba(222,180,74,0.2); color: #deb44a; }
+  .res-inplay { background: rgba(60,184,80,0.2); color: #3cb850; }
+ 
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--navy);
+    border-top: 2px solid var(--green-mid);
+    display: flex;
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: rgba(245,237,216,0.35);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.65rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 10px 4px 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: color 0.15s;
+  }
+  .nav-btn.active { color: var(--gold); }
+  .nav-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+ 
+  /* TABS */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+ 
+  /* LOG SCREEN */
+  .log-screen-list { padding: 16px; }
+  .log-game-card {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .log-game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: rgba(0,0,0,0.15);
+    cursor: pointer;
+  }
+  .log-game-header-info { flex: 1; }
+  .log-game-pitcher { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem; }
+  .log-game-date { font-size: 0.72rem; color: rgba(245,237,216,0.4); }
+  .log-game-total {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--gold);
+    margin: 0 12px;
+    line-height: 1;
+  }
+  .log-game-body { padding: 10px 14px; display: none; }
+  .log-game-body.open { display: block; }
+ 
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(245,237,216,0.3);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+  }
+  .empty-state .empty-icon { font-size: 3rem; display: block; margin-bottom: 12px; }
+ 
+  /* Flash animation for pitch log */
+  @keyframes flashIn {
+    0% { background: rgba(212,175,55,0.3); }
+    100% { background: transparent; }
+  }
+  .log-item.new { animation: flashIn 0.6s ease-out; }
+ 
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel" data-presets="react">
-const { useState } = React;
-
-// ─── STORAGE ──────────────────────────────────────────────────────────────────
-function load(key, fb) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fb; } catch { return fb; } }
-function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
-let _c = Date.now();
-function uid() { return "x" + (++_c).toString(36); }
-
-// ─── COLORS ───────────────────────────────────────────────────────────────────
-const C = {
-  bg0: "#f8f9fa", bg1: "#ffffff", bg2: "#f1f3f5", bg3: "#e9ecef",
-  border: "#dee2e6", borderHi: "#ff8c00",
-  text: "#1a1a1a", textSub: "#495057", textMuted: "#6c757d",
-  orange: "#ff8c00", green: "#00b36b"
-};
-
-// ─── VIRTUES (Complete) ───────────────────────────────────────────────────────
-const VIRTUES = {
-  L: { key:"L", label:"Love", icon:"❤️", tagline:"Others-first in a me-first culture", color:"#ff4d4d", bg:"#fff0f0", border:"#ff8c00",
-       scoreMeaning: "0=Never • 1=Rarely • 2=Sometimes • 3=Consistently puts others first",
-       strong: ["Celebrates teammates' success", "Shows genuine kindness", "Puts team above self"],
-       weak:   ["Selfish on and off the field", "Dismisses or ignores teammates", "Only cheers for own highlights"],
-       develop: ["After each game, name one teammate who helped you win", "Do one act of encouragement before you leave the field", "Pray: 'Lord, help me love my teammates the way You love me'"] },
-  P: { key:"P", label:"Peace", icon:"☮️", tagline:"Calm anchored in Christ", color:"#00b36b", bg:"#f0fff4", border:"#ff8c00",
-       scoreMeaning: "0=Constant anxiety • 1=Occasional calm • 2=Usually calm • 3=Peace that guards the heart",
-       strong: ["Stays composed under pressure", "Calms teammates in tense moments", "Bounces back quickly from mistakes"],
-       weak:   ["Anxious or panicked when things go wrong", "Spreads tension to teammates", "Dwells on errors during play"],
-       develop: ["Practice three slow breaths before any big moment", "Write down one worry this week and give it to God in prayer", "Memorize Phil. 4:7 — let it anchor your pregame routine"] },
-  S: { key:"S", label:"Self-Control", icon:"🛡️", tagline:"Responding instead of reacting", color:"#0077cc", bg:"#f0f8ff", border:"#ff8c00",
-       scoreMeaning: "0=Frequent outbursts • 1=Improving • 2=Usually controlled • 3=Strong self-discipline",
-       strong: ["Responds to bad calls without blowing up", "Keeps emotions in check under provocation", "Leads by example in discipline"],
-       weak:   ["Frequent outbursts or meltdowns", "Argues with officials or coaches", "Lets frustration hurt performance"],
-       develop: ["Identify your #1 trigger — name it, then make a plan for it", "After a bad call, count to 5 before you react", "Ask a trusted teammate to hold you accountable this week"] },
-  G: { key:"G", label:"Gentleness", icon:"🌿", tagline:"Strength under control", color:"#9c4dff", bg:"#f8f0ff", border:"#ff8c00",
-       scoreMeaning: "0=Often harsh • 1=Sometimes gentle • 2=Usually gentle • 3=Strength under control",
-       strong: ["Encourages struggling teammates", "Competes hard without being cruel", "Uses words that build up, not tear down"],
-       weak:   ["Often harsh or cutting with words", "Intimidates or belittles others", "Confuses meanness with toughness"],
-       develop: ["Before criticizing a teammate, ask: 'Is this kind AND true?'", "Find one struggling player this week and intentionally encourage them", "Journal: where did strength AND gentleness show up together today?"] },
-  H: { key:"H", label:"Humility", icon:"🙏", tagline:"Playing from identity, not for identity", color:"#ff8c00", bg:"#fff8f0", border:"#ff8c00",
-       scoreMeaning: "0=Very prideful • 1=Occasional humility • 2=Growing humility • 3=Consistently humble",
-       strong: ["Credits teammates and coaches for success", "Accepts coaching without defensiveness", "Secure enough to celebrate others"],
-       weak:   ["Takes credit, deflects blame", "Gets defensive when corrected", "Needs to be the star"],
-       develop: ["After your next win, publicly credit two specific teammates", "When corrected by a coach, respond: 'Thank you, I'll work on that'", "Ask yourself: 'Am I playing TO prove something or FROM knowing who I am?'"] },
-  Gr: { key:"Gr", label:"Gratitude", icon:"🙌", tagline:"Thankful in all circumstances", color:"#ffaa00", bg:"#fffdf0", border:"#ff8c00",
-       scoreMeaning: "0=Very entitled • 1=Occasional thanks • 2=Usually grateful • 3=Thankful in all circumstances",
-       strong: ["Thanks coaches, officials, and opponents", "Grateful for the opportunity to compete", "Positive attitude win or lose"],
-       weak:   ["Entitled attitude about playing time or roles", "Rarely thanks others", "Complains about conditions, calls, or teammates"],
-       develop: ["Start every practice with one thing you're grateful for about this team", "Write a one-line thank-you to a coach or teammate this week", "After a loss, find three genuine things to be thankful for before you leave"] },
-  J: { key:"J", label:"Joy", icon:"🎉", tagline:"Delight that outlasts the score", color:"#ff6600", bg:"#fff4f0", border:"#ff8c00",
-       scoreMeaning: "0=Joy is gone • 1=Rare joy • 2=Usually joyful • 3=Consistent delight",
-       strong: ["Genuine enjoyment of the game", "Joy that doesn't depend on the scoreboard", "Lifts the energy of those around them"],
-       weak:   ["Only happy when winning", "Drains team energy with negativity", "Has lost the love of the game"],
-       develop: ["Recall why you first fell in love with this sport — write it down", "Find one moment in each practice to just enjoy the game", "Remind yourself: the scoreboard is temporary, but who you're becoming is not"] }
-};
-
-const SCORE_LABELS = ["Missing", "Emerging", "Developing", "Strong"];
-
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
-function getCombo(scores) {
-  const strong = Object.values(scores).filter(v => v === 3).length;
-  const developing = Object.values(scores).filter(v => v >= 2).length;
-  const avg = (Object.values(scores).reduce((a,b) => a + b, 0) / 7).toFixed(1);
-
-  if (strong >= 5) return { label: "Kingdom Competitor", icon: "🏆", desc: `Avg ${avg}/3`, color: C.orange, progress: 95 };
-  if (developing >= 6) return { label: "Strong Disciple", icon: "🌟", desc: `Avg ${avg}/3`, color: C.green, progress: 85 };
-  return { label: "Developing Disciple", icon: "🌱", desc: `Avg ${avg}/3`, color: "#fd7e14", progress: Math.round(developing / 7 * 100) };
+ 
+<div class="header">
+  <div class="header-logo">
+    ⚾ Pitch<span>TRACKER</span>
+  </div>
+  <div class="header-actions" id="headerActions">
+    <button class="btn-sm btn-outline" onclick="goSetup()">+ New Game</button>
+  </div>
+</div>
+ 
+<!-- SETUP SCREEN -->
+<div class="screen active" id="screenSetup">
+  <div class="setup-wrap">
+    <div class="setup-title">Game Setup</div>
+ 
+    <div class="field-group">
+      <label class="field-label">Pitcher Name</label>
+      <input class="field-input" id="pitcherName" type="text" placeholder="e.g. Jackson, T." maxlength="40" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Game Date</label>
+      <input class="field-input" id="gameDate" type="date" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Pitch Limit</label>
+      <div class="limit-row">
+        <input class="field-input" id="pitchLimit" type="number" min="1" max="200" placeholder="e.g. 75" />
+        <div class="limit-badge">pitches</div>
+      </div>
+    </div>
+ 
+    <button class="btn-start" onclick="startGame()">Start Tracking</button>
+ 
+    <div class="saved-section" id="savedSection">
+      <div class="saved-title">Saved Games</div>
+      <div id="savedGamesList"></div>
+    </div>
+  </div>
+</div>
+ 
+<!-- TRACKER SCREEN -->
+<div class="screen" id="screenTracker">
+ 
+  <!-- Count Bar -->
+  <div class="count-bar">
+    <div class="count-pitcher">
+      <div class="count-pitcher-name" id="dispName">—</div>
+      <div class="count-pitcher-date" id="dispDate">—</div>
+    </div>
+    <div class="count-bso">
+      <div class="bso-group">
+        <span class="bso-label">B</span>
+        <div class="bso-dots" id="dotsBall">
+          <div class="bso-dot"></div>
+          <div class="bso-dot"></div>
+          <div class="bso-dot"></div>
+          <div class="bso-dot"></div>
+        </div>
+      </div>
+      <div class="bso-group">
+        <span class="bso-label">S</span>
+        <div class="bso-dots" id="dotsStrike">
+          <div class="bso-dot"></div>
+          <div class="bso-dot"></div>
+          <div class="bso-dot"></div>
+        </div>
+      </div>
+      <div class="bso-group">
+        <span class="bso-label">O</span>
+        <div class="bso-dots" id="dotsOut">
+          <div class="bso-dot"></div>
+          <div class="bso-dot"></div>
+          <div class="bso-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="count-total">
+      <div class="count-num" id="totalCount">0</div>
+      <div class="count-label">Pitches</div>
+    </div>
+  </div>
+ 
+  <!-- Warning Banner -->
+  <div class="warning-banner" id="warningBanner"></div>
+ 
+  <!-- Inning -->
+  <div class="inning-bar">
+    <div class="inning-label">Inning</div>
+    <div class="inning-ctrl">
+      <button class="inning-btn" onclick="changeInning(-1)">−</button>
+      <div class="inning-num" id="inningNum">1</div>
+      <button class="inning-btn" onclick="changeInning(1)">+</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="btn-sm btn-outline" onclick="newAB()" style="font-size:0.65rem;">New AB</button>
+    </div>
+  </div>
+ 
+  <!-- Tabs -->
+  <div class="bottom-nav" id="trackerNav">
+    <button class="nav-btn active" onclick="switchTab('tabLog')" id="navLog">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12h2M20 12h2M12 2v2M12 20v2"/></svg>
+      Log
+    </button>
+    <button class="nav-btn" onclick="switchTab('tabStats')" id="navStats">
+      <svg viewBox="0 0 24 24"><rect x="3" y="14" width="4" height="7"/><rect x="10" y="9" width="4" height="12"/><rect x="17" y="4" width="4" height="17"/></svg>
+      Stats
+    </button>
+    <button class="nav-btn" onclick="switchTab('tabHistory')" id="navHistory">
+      <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+      Log
+    </button>
+    <button class="nav-btn" onclick="goSetup()">
+      <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      Menu
+    </button>
+  </div>
+ 
+  <!-- TAB: LOG PITCH -->
+  <div class="tab-panel active" id="tabLog">
+    <div class="pitch-section">
+      <div class="section-label">Pitch Type</div>
+      <div class="pitch-grid">
+        <button class="pitch-btn" data-type="Fastball" onclick="selectType(this)">FB</button>
+        <button class="pitch-btn" data-type="Curveball" onclick="selectType(this)">CB</button>
+        <button class="pitch-btn" data-type="Slider" onclick="selectType(this)">SL</button>
+        <button class="pitch-btn" data-type="Changeup" onclick="selectType(this)">CH</button>
+        <button class="pitch-btn" data-type="Other" onclick="selectType(this)">OT</button>
+      </div>
+    </div>
+ 
+    <div class="pitch-section" style="padding-top:4px;">
+      <div class="section-label">Result</div>
+      <div class="result-grid">
+        <button class="result-btn" data-result="Ball" onclick="selectResult(this)">Ball</button>
+        <button class="result-btn" data-result="Strike" onclick="selectResult(this)">Strike</button>
+        <button class="result-btn" data-result="Foul" onclick="selectResult(this)">Foul</button>
+        <button class="result-btn" data-result="In Play" onclick="selectResult(this)">In Play</button>
+      </div>
+    </div>
+ 
+    <div class="log-wrap">
+      <button class="btn-log" id="btnLog" onclick="logPitch()" disabled>Log Pitch</button>
+    </div>
+ 
+    <div class="undo-row">
+      <button class="btn-undo" onclick="undoPitch()">↩ Undo Last</button>
+    </div>
+ 
+    <div class="pitch-log-section">
+      <div class="section-label">This Game</div>
+      <div class="log-list" id="pitchLogList"></div>
+    </div>
+  </div>
+ 
+  <!-- TAB: STATS -->
+  <div class="tab-panel" id="tabStats">
+    <div class="stats-panel">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-title">By Type</div>
+          <div id="typeBreakdown"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">By Result</div>
+          <div id="resultBreakdown"></div>
+        </div>
+      </div>
+      <div class="stat-card" style="margin-bottom:10px;">
+        <div class="stat-card-title">Pitches By Inning</div>
+        <table class="inning-table" id="inningTable">
+          <thead><tr><th>INN</th><th>Pitches</th><th>Balls</th><th>Strikes</th><th>Fouls</th><th>In Play</th></tr></thead>
+          <tbody id="inningTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- TAB: HISTORY (pitch list) -->
+  <div class="tab-panel" id="tabHistory">
+    <div class="log-screen-list" id="pitchLogFull"></div>
+  </div>
+ 
+</div>
+ 
+<!-- LOGS SCREEN -->
+<div class="screen" id="screenLogs">
+  <div class="log-screen-list" id="allGamesList"></div>
+</div>
+ 
+<script>
+// ─── STATE ─────────────────────────────────────────────────────────────────
+let game = null; // current game object
+let selectedType = null;
+let selectedResult = null;
+let balls = 0, strikes = 0, outs = 0;
+ 
+// game: { id, pitcher, date, limit, pitches: [{num, inning, type, result}], inning }
+ 
+// ─── INIT ───────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const d = new Date();
+  document.getElementById('gameDate').value = d.toISOString().split('T')[0];
+  renderSavedGames();
+});
+ 
+// ─── SETUP ──────────────────────────────────────────────────────────────────
+function goSetup() {
+  saveCurrentGame();
+  showScreen('screenSetup');
+  renderSavedGames();
 }
-
-function calculateTeamProgress(athletes) {
-  if (athletes.length === 0) return { avgScore: "0.0", strongPercent: 0, totalAthletes: 0 };
-  let totalScore = 0, totalStrong = 0;
-  const totalVirtues = athletes.length * 7;
-
-  athletes.forEach(a => {
-    const scores = Object.values(a.scores || {});
-    totalScore += scores.reduce((a,b) => a + b, 0);
-    totalStrong += scores.filter(v => v === 3).length;
+ 
+function startGame() {
+  const name = document.getElementById('pitcherName').value.trim();
+  const date = document.getElementById('gameDate').value;
+  const limit = parseInt(document.getElementById('pitchLimit').value) || 0;
+ 
+  if (!name) { alert('Enter a pitcher name.'); return; }
+  if (!date) { alert('Select a game date.'); return; }
+ 
+  game = {
+    id: Date.now().toString(),
+    pitcher: name,
+    date: date,
+    limit: limit,
+    pitches: [],
+    inning: 1
+  };
+  balls = 0; strikes = 0; outs = 0;
+  selectedType = null; selectedResult = null;
+ 
+  showScreen('screenTracker');
+  renderAll();
+  switchTab('tabLog');
+}
+ 
+function loadGame(id) {
+  saveCurrentGame();
+  const saved = loadAllGames();
+  const g = saved.find(g => g.id === id);
+  if (!g) return;
+  game = g;
+  balls = 0; strikes = 0; outs = 0;
+  selectedType = null; selectedResult = null;
+  showScreen('screenTracker');
+  renderAll();
+  switchTab('tabLog');
+}
+ 
+// ─── SCREEN / TAB ───────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+ 
+function switchTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#trackerNav .nav-btn').forEach(b => b.classList.remove('active'));
+  const map = { tabLog: 'navLog', tabStats: 'navStats', tabHistory: 'navHistory' };
+  if (map[id]) document.getElementById(map[id]).classList.add('active');
+  if (id === 'tabStats') renderStats();
+  if (id === 'tabHistory') renderFullLog();
+}
+ 
+// ─── SELECTION ───────────────────────────────────────────────────────────────
+function selectType(btn) {
+  document.querySelectorAll('.pitch-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedType = btn.dataset.type;
+  checkLogReady();
+}
+ 
+function selectResult(btn) {
+  document.querySelectorAll('.result-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedResult = btn.dataset.result;
+  checkLogReady();
+}
+ 
+function checkLogReady() {
+  document.getElementById('btnLog').disabled = !(selectedType && selectedResult);
+}
+ 
+// ─── LOG PITCH ───────────────────────────────────────────────────────────────
+function logPitch() {
+  if (!selectedType || !selectedResult || !game) return;
+ 
+  const pitch = {
+    num: game.pitches.length + 1,
+    inning: game.inning,
+    type: selectedType,
+    result: selectedResult
+  };
+  game.pitches.push(pitch);
+ 
+  // Update live count (simple)
+  if (selectedResult === 'Ball') {
+    balls = Math.min(balls + 1, 4);
+    if (balls >= 4) { balls = 0; strikes = 0; } // walk — reset
+  } else if (selectedResult === 'Strike') {
+    strikes = Math.min(strikes + 1, 3);
+    if (strikes >= 3) { strikes = 0; balls = 0; } // K — reset
+  } else if (selectedResult === 'Foul') {
+    if (strikes < 2) strikes++;
+  } else if (selectedResult === 'In Play') {
+    balls = 0; strikes = 0; // reset on contact
+  }
+ 
+  saveCurrentGame();
+  renderAll();
+ 
+  // reset selection
+  selectedType = null; selectedResult = null;
+  document.querySelectorAll('.pitch-btn,.result-btn').forEach(b => b.classList.remove('selected'));
+  checkLogReady();
+}
+ 
+function undoPitch() {
+  if (!game || game.pitches.length === 0) return;
+  game.pitches.pop();
+  balls = 0; strikes = 0; outs = 0;
+  saveCurrentGame();
+  renderAll();
+}
+ 
+function newAB() {
+  balls = 0; strikes = 0;
+  renderCountDots();
+}
+ 
+function changeInning(dir) {
+  if (!game) return;
+  game.inning = Math.max(1, game.inning + dir);
+  saveCurrentGame();
+  document.getElementById('inningNum').textContent = game.inning;
+}
+ 
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function renderAll() {
+  if (!game) return;
+  renderHeader();
+  renderCountDots();
+  renderTotalCount();
+  renderWarning();
+  renderPitchLog();
+  document.getElementById('inningNum').textContent = game.inning;
+}
+ 
+function renderHeader() {
+  document.getElementById('dispName').textContent = game.pitcher;
+  const d = new Date(game.date + 'T12:00:00');
+  document.getElementById('dispDate').textContent = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+ 
+function renderCountDots() {
+  const bd = document.getElementById('dotsBall').querySelectorAll('.bso-dot');
+  bd.forEach((d, i) => { d.classList.toggle('active-b', i < balls); });
+  const sd = document.getElementById('dotsStrike').querySelectorAll('.bso-dot');
+  sd.forEach((d, i) => { d.classList.toggle('active-s', i < strikes); });
+  const od = document.getElementById('dotsOut').querySelectorAll('.bso-dot');
+  od.forEach((d, i) => { d.classList.toggle('active-o', i < outs); });
+}
+ 
+function renderTotalCount() {
+  const total = game.pitches.length;
+  const el = document.getElementById('totalCount');
+  el.textContent = total;
+  const limit = game.limit;
+  el.classList.remove('warn', 'danger', 'over');
+  if (limit > 0) {
+    const pct = total / limit;
+    if (total >= limit) el.classList.add('over');
+    else if (pct >= 0.9) el.classList.add('danger');
+    else if (pct >= 0.75) el.classList.add('warn');
+  }
+}
+ 
+function renderWarning() {
+  const banner = document.getElementById('warningBanner');
+  const total = game.pitches.length;
+  const limit = game.limit;
+  if (!limit) { banner.classList.remove('show'); return; }
+  if (total >= limit) {
+    banner.textContent = `⚠️ PITCH LIMIT REACHED — ${total}/${limit} pitches thrown`;
+    banner.className = 'warning-banner show over';
+  } else if (total >= Math.round(limit * 0.9)) {
+    const rem = limit - total;
+    banner.textContent = `⚠️ Approaching limit — ${rem} pitches remaining`;
+    banner.className = 'warning-banner show';
+  } else {
+    banner.classList.remove('show');
+  }
+}
+ 
+function renderPitchLog() {
+  const list = document.getElementById('pitchLogList');
+  list.innerHTML = '';
+  const pitches = [...game.pitches].reverse();
+  pitches.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'log-item' + (i === 0 ? ' new' : '');
+    const resClass = { Ball: 'res-ball', Strike: 'res-strike', Foul: 'res-foul', 'In Play': 'res-inplay' }[p.result] || '';
+    el.innerHTML = `
+      <span class="log-num">${p.num}</span>
+      <span class="log-inning">I${p.inning}</span>
+      <span class="log-type">${p.type}</span>
+      <span class="log-result ${resClass}">${p.result}</span>
+    `;
+    list.appendChild(el);
   });
-
-  const avgScore = (totalScore / totalVirtues).toFixed(1);
-  const strongPercent = Math.round((totalStrong / totalVirtues) * 100);
-
-  return { avgScore, strongPercent, totalAthletes: athletes.length };
 }
-
-// ─── MODALS ───────────────────────────────────────────────────────────────────
-function Modal({title, onClose, children}) {
-  return (
-    <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:500, display:"flex", alignItems:"center", justifyContent:"center"}} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{background:"#fff", borderRadius:16, width:"92%", maxWidth:720, maxHeight:"92vh", overflow:"hidden", boxShadow:"0 25px 70px rgba(0,0,0,0.25)"}}>
-        <div style={{padding:"18px 24px", borderBottom:"1px solid #dee2e6", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-          <span style={{fontSize:21, fontWeight:800, color:C.orange}}>{title}</span>
-          <button onClick={onClose} style={{fontSize:24, background:"none", border:"none", color:"#666"}}>✕</button>
-        </div>
-        <div style={{padding:24, overflowY:"auto", maxHeight:"78vh"}}>{children}</div>
-      </div>
-    </div>
-  );
+ 
+function renderStats() {
+  if (!game) return;
+  const pitches = game.pitches;
+  const total = pitches.length || 1;
+ 
+  // Type breakdown
+  const types = ['Fastball', 'Curveball', 'Slider', 'Changeup', 'Other'];
+  const barClasses = { Fastball: 'bar-fb', Curveball: 'bar-cb', Slider: 'bar-sl', Changeup: 'bar-ch', Other: 'bar-ot' };
+  const labels = { Fastball: 'FB', Curveball: 'CB', Slider: 'SL', Changeup: 'CH', Other: 'OT' };
+  const typeEl = document.getElementById('typeBreakdown');
+  typeEl.innerHTML = types.map(t => {
+    const c = pitches.filter(p => p.type === t).length;
+    const pct = Math.round(c / total * 100);
+    return `<div class="breakdown-row">
+      <span class="breakdown-label">${labels[t]}</span>
+      <div class="breakdown-bar-wrap"><div class="breakdown-bar ${barClasses[t]}" style="width:${pct}%"></div></div>
+      <span class="breakdown-count">${c}</span>
+    </div>`;
+  }).join('');
+ 
+  // Result breakdown
+  const results = ['Ball', 'Strike', 'Foul', 'In Play'];
+  const resClasses = { Ball: 'bar-ball', Strike: 'bar-strike', Foul: 'bar-foul', 'In Play': 'bar-inplay' };
+  const resEl = document.getElementById('resultBreakdown');
+  resEl.innerHTML = results.map(r => {
+    const c = pitches.filter(p => p.result === r).length;
+    const pct = Math.round(c / total * 100);
+    return `<div class="breakdown-row">
+      <span class="breakdown-label">${r}</span>
+      <div class="breakdown-bar-wrap"><div class="breakdown-bar ${resClasses[r]}" style="width:${pct}%"></div></div>
+      <span class="breakdown-count">${c}</span>
+    </div>`;
+  }).join('');
+ 
+  // Inning table
+  const innings = {};
+  pitches.forEach(p => {
+    if (!innings[p.inning]) innings[p.inning] = [];
+    innings[p.inning].push(p);
+  });
+  const inningNums = Object.keys(innings).map(Number).sort((a,b) => a-b);
+  const tbody = document.getElementById('inningTableBody');
+  tbody.innerHTML = inningNums.map(n => {
+    const ps = innings[n];
+    const balls = ps.filter(p => p.result === 'Ball').length;
+    const strikes = ps.filter(p => p.result === 'Strike').length;
+    const fouls = ps.filter(p => p.result === 'Foul').length;
+    const inplay = ps.filter(p => p.result === 'In Play').length;
+    const isCurrentRow = n === game.inning ? ' class="current-row"' : '';
+    return `<tr${isCurrentRow}><td>${n}</td><td>${ps.length}</td><td>${balls}</td><td>${strikes}</td><td>${fouls}</td><td>${inplay}</td></tr>`;
+  }).join('') || '<tr><td colspan="6" style="color:rgba(245,237,216,0.3);padding:10px;font-size:0.8rem;font-family:\'Barlow Condensed\',sans-serif;">No pitches yet</td></tr>';
 }
-
-function ConfirmDelete({name, onConfirm, onCancel}) {
-  return (
-    <Modal title="Delete Athlete" onClose={onCancel}>
-      <p style={{fontSize:16, marginBottom:24}}>Are you sure you want to permanently delete <strong>{name}</strong>?</p>
-      <p style={{color:"#ef4444", marginBottom:24}}>This cannot be undone.</p>
-      <div style={{display:"flex", gap:12, justifyContent:"flex-end"}}>
-        <button onClick={onCancel} style={{padding:"12px 24px", border:"none", background:"#ddd", borderRadius:10}}>Cancel</button>
-        <button onClick={onConfirm} style={{padding:"12px 28px", border:"none", background:"#ef4444", color:"#fff", borderRadius:10, fontWeight:700}}>Yes, Delete</button>
-      </div>
-    </Modal>
-  );
-}
-
-// ─── EDIT MODAL ───────────────────────────────────────────────────────────────
-function EditModal({person, onSave, onClose}) {
-  const [data, setData] = useState({...person, notes: person.notes || ""});
-
-  const updateScore = (key, value) => setData(prev => ({...prev, scores: {...prev.scores, [key]: Number(value)}}));
-
-  return (
-    <Modal title={data.id ? "Edit Athlete" : "Add New Athlete"} onClose={onClose}>
-      <input placeholder="Athlete Name *" value={data.name||""} onChange={e=>setData({...data,name:e.target.value})} style={{width:"100%", padding:14, fontSize:17, border:`2px solid ${C.border}`, borderRadius:10, marginBottom:12}} />
-      <input placeholder="Role / Team (optional)" value={data.role||""} onChange={e=>setData({...data,role:e.target.value})} style={{width:"100%", padding:14, fontSize:17, border:`2px solid ${C.border}`, borderRadius:10, marginBottom:20}} />
-
-      <div style={{marginBottom:20}}>
-        <div style={{fontWeight:700, color:C.orange, marginBottom:12}}>Score Each Virtue (0–3)</div>
-        {Object.values(VIRTUES).map(t => (
-          <div key={t.key} style={{marginBottom:16, padding:16, background:"#fff", border:`1px solid ${t.border}`, borderRadius:12}}>
-            <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:8}}>
-              <span style={{fontSize:28}}>{t.icon}</span>
-              <div style={{flex:1, fontWeight:700, color:t.color}}>{t.label}</div>
-            </div>
-            <div style={{fontSize:13, color:"#555", marginBottom:10}}>{t.scoreMeaning}</div>
-            <div style={{display:"flex", gap:6}}>
-              {[0,1,2,3].map(n => (
-                <button key={n} onClick={()=>updateScore(t.key,n)} style={{flex:1, padding:"10px", borderRadius:8, background: data.scores[t.key]===n ? C.orange : "#f1f3f5", color: data.scores[t.key]===n ? "#fff" : "#333", fontWeight:700}}>
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{marginBottom:20}}>
-        <div style={{fontWeight:700, marginBottom:8}}>Notes / Observations / Prayers</div>
-        <textarea value={data.notes} onChange={e=>setData({...data, notes:e.target.value})} placeholder="Key moments, growth areas, specific prayers..." style={{width:"100%", height:130, padding:14, border:`2px solid ${C.border}`, borderRadius:10, resize:"vertical"}} />
-      </div>
-
-      <div style={{display:"flex", gap:12, justifyContent:"flex-end"}}>
-        <button onClick={onClose} style={{padding:"12px 24px", border:"none", background:"#ddd", borderRadius:10}}>Cancel</button>
-        <button onClick={()=>onSave(data)} style={{padding:"12px 32px", border:"none", background:C.orange, color:"#fff", borderRadius:10, fontWeight:700}} disabled={!data.name?.trim()}>💾 Save Changes</button>
-      </div>
-    </Modal>
-  );
-}
-
-// ─── PERSON DETAIL ────────────────────────────────────────────────────────────
-function PersonDetail({person, onClose, onEdit}) {
-  const [tab, setTab] = useState("assess");
-  const combo = getCombo(person.scores);
-
-  return (
-    <Modal title={person.name} onClose={onClose}>
-      <div style={{display:"flex", justifyContent:"space-between", marginBottom:20}}>
-        <div>
-          <div style={{fontSize:52}}>{combo.icon}</div>
-          <div style={{fontSize:24, fontWeight:800, color:combo.color}}>{combo.label}</div>
-        </div>
-        <button onClick={()=>{ onEdit(person); onClose(); }} style={{background:C.orange, color:"#fff", border:"none", padding:"10px 22px", borderRadius:10, fontWeight:700}}>✏ Edit</button>
-      </div>
-
-      <div style={{marginBottom:24}}>
-        <div style={{display:"flex", justifyContent:"space-between", fontSize:14, marginBottom:8}}>
-          <span>Character Progress</span>
-          <span>{combo.progress}%</span>
-        </div>
-        <div className="progress-bar">
-          <div className="progress-fill" style={{width: `${combo.progress}%`, background: combo.progress > 80 ? "linear-gradient(90deg,#00b36b,#34d399)" : combo.progress > 50 ? "linear-gradient(90deg,#ff8c00,#ffaa00)" : "#dc3545"}} />
-        </div>
-        <div style={{fontSize:13, color:C.textMuted, marginTop:6}}>
-          Last updated: {person.lastUpdated ? new Date(person.lastUpdated).toLocaleDateString() : "Never"}
-        </div>
-      </div>
-
-      <div style={{display:"flex", borderBottom:"3px solid #ff8c00", marginBottom:20}}>
-        {["assess","develop","notes"].map(t => (
-          <button key={t} onClick={()=>setTab(t)} style={{flex:1, padding:"14px", fontWeight:700, background:tab===t?C.orange:"#f1f3f5", color:tab===t?"#fff":"#333", border:"none"}}>
-            {t==="assess"?"📊 Profile":t==="develop"?"🛠 Develop":"📝 Notes"}
-          </button>
-        ))}
-      </div>
-
-      {tab==="assess" && Object.entries(person.scores).map(([k,v]) => {
-        const t = VIRTUES[k];
-        const showHas = v >= 2;
-        return (
-          <div key={k} style={{marginBottom:20, background:"#fff", border:`2px solid ${t.border}`, borderRadius:14, overflow:"hidden"}}>
-            <div style={{background:t.bg, padding:"16px 20px", display:"flex", alignItems:"center", gap:16}}>
-              <span style={{fontSize:42}}>{t.icon}</span>
-              <div style={{flex:1}}><div style={{fontSize:21, fontWeight:800, color:t.color}}>{t.label}</div></div>
-              <span style={{fontSize:18, fontWeight:700}}>{v}/3</span>
-            </div>
-            <div style={{padding:"20px"}}>
-              {(showHas ? t.strong : t.weak).map((s,i) => (
-                <div key={i} style={{marginBottom:6}}>{showHas?"→":"–"} {s}</div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
-
-      {tab==="develop" && (
-        <div>
-          {Object.entries(person.scores).map(([k,v]) => {
-            const t = VIRTUES[k];
-            return (
-              <div key={k} style={{marginBottom:20, background:"#fff", border:`2px solid ${t.border}`, borderRadius:14, overflow:"hidden"}}>
-                <div style={{background:t.bg, padding:"14px 20px", display:"flex", alignItems:"center", gap:12}}>
-                  <span style={{fontSize:28}}>{t.icon}</span>
-                  <div style={{fontSize:18, fontWeight:800, color:t.color, flex:1}}>{t.label}</div>
-                  <span style={{fontSize:14, color:C.textMuted, background:"#fff", padding:"4px 10px", borderRadius:20, fontWeight:700}}>{SCORE_LABELS[v]}</span>
-                </div>
-                <div style={{padding:"16px 20px"}}>
-                  {t.develop.map((step,i) => (
-                    <div key={i} style={{display:"flex", gap:12, marginBottom:10, alignItems:"flex-start"}}>
-                      <span style={{background:C.orange, color:"#fff", borderRadius:"50%", width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, flexShrink:0}}>{i+1}</span>
-                      <span style={{fontSize:14, color:C.text, lineHeight:1.5}}>{step}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {tab==="notes" && (
-        <div style={{background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:24, minHeight:200, whiteSpace:"pre-wrap", fontSize:15}}>
-          {person.notes || "No notes added yet."}
-        </div>
-      )}
-    </Modal>
-  );
-}
-
-const BLANK_ATHLETE = { id:"", name:"", role:"", notes:"", scores:{L:1,P:1,S:1,G:1,H:1,Gr:1,J:1}, lastUpdated: null };
-
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
-function App() {
-  const [tab, setTab] = useState("athletes");
-  const [athletes, setAthletes] = useState(() => load("awaygame_athletes_v1", []));
-  const [editing, setEditing] = useState(null);
-  const [viewing, setViewing] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-  function saveAthlete(p) {
-    const updated = {...p, id: p.id || uid(), lastUpdated: Date.now()};
-    const next = p.id ? athletes.map(x => x.id === p.id ? updated : x) : [...athletes, updated];
-    setAthletes(next);
-    save("awaygame_athletes_v1", next);
-    setEditing(null);
+ 
+function renderFullLog() {
+  const el = document.getElementById('pitchLogFull');
+  if (!game || game.pitches.length === 0) {
+    el.innerHTML = '<div class="empty-state"><span class="empty-icon">⚾</span>No pitches logged yet.</div>';
+    return;
   }
-
-  function deleteAthlete(id) {
-    const next = athletes.filter(a => a.id !== id);
-    setAthletes(next);
-    save("awaygame_athletes_v1", next);
-    setDeleteConfirm(null);
-    if (viewing && viewing.id === id) setViewing(null);
-  }
-
-  const teamStats = calculateTeamProgress(athletes);
-
-  return (
-    <div style={{minHeight:"100vh", background:"#f8f9fa"}}>
-      {/* HEADER */}
-      <div style={{background:"#fff", borderBottom:"4px solid #ff8c00", padding:"0 24px", height:76, display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 3px 12px rgba(0,0,0,0.1)"}}>
-        <div>
-          <div style={{fontFamily:"'Barlow Condensed',sans-serif", fontWeight:900, fontSize:32, letterSpacing:1.5, color:C.orange}}>AWAY GAME</div>
-          <div style={{fontSize:13, color:"#555"}}>Christian Parent’s Playbook</div>
-        </div>
-        <div style={{display:"flex", gap:8}}>
-          <button onClick={()=>setTab("athletes")} style={{padding:"10px 22px", borderRadius:10, background:tab==="athletes"?C.orange:"#fff", color:tab==="athletes"?"#fff":"#333", fontWeight:700, border:"2px solid #ff8c00"}}>👥 My Athletes</button>
-          <button onClick={()=>setTab("playbook")} style={{padding:"10px 22px", borderRadius:10, background:tab==="playbook"?C.orange:"#fff", color:tab==="playbook"?"#fff":"#333", fontWeight:700, border:"2px solid #ff8c00"}}>📖 The Playbook</button>
-        </div>
-      </div>
-
-      {tab === "athletes" && (
-        <div style={{padding:24}}>
-          {/* TEAM PROGRESS DASHBOARD */}
-          {athletes.length > 0 && (
-            <div className="team-card" style={{marginBottom:32}}>
-              <div style={{fontSize:20, fontWeight:800, marginBottom:16, color:C.orange}}>Team Progress Overview</div>
-              <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(180px, 1fr))", gap:20}}>
-                <div>
-                  <div style={{fontSize:13, color:C.textMuted}}>Team Average Score</div>
-                  <div style={{fontSize:32, fontWeight:800, color:C.orange}}>{teamStats.avgScore}</div>
-                  <div style={{fontSize:13}}>out of 3.0</div>
-                </div>
-                <div>
-                  <div style={{fontSize:13, color:C.textMuted}}>Strong Virtues</div>
-                  <div style={{fontSize:32, fontWeight:800, color: teamStats.strongPercent > 70 ? C.green : C.orange}}>{teamStats.strongPercent}%</div>
-                </div>
-                <div>
-                  <div style={{fontSize:13, color:C.textMuted}}>Athletes Tracked</div>
-                  <div style={{fontSize:32, fontWeight:800}}>{teamStats.totalAthletes}</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:28}}>
-            <h1 style={{fontSize:28, fontWeight:800}}>My Athletes</h1>
-            <button onClick={()=>setEditing(BLANK_ATHLETE)} style={{background:C.orange, color:"#fff", border:"none", padding:"12px 28px", borderRadius:12, fontWeight:700}}>＋ Add Athlete</button>
-          </div>
-
-          {athletes.length === 0 ? (
-            <div style={{textAlign:"center", padding:"120px 20px", color:"#666"}}>
-              <div style={{fontSize:80}}>⚽️🏀🏈</div>
-              <div style={{fontSize:24, margin:"20px 0"}}>Start building your team’s character</div>
-              <button onClick={()=>setEditing(BLANK_ATHLETE)} style={{background:C.orange, color:"#fff", padding:"14px 36px", borderRadius:12, fontSize:17, fontWeight:700}}>Add Your First Athlete</button>
-            </div>
-          ) : (
-            <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(310px, 1fr))", gap:20}}>
-              {athletes.map(p => {
-                const combo = getCombo(p.scores);
-                return (
-                  <div key={p.id} style={{background:"#fff", border:`1px solid ${C.border}`, borderRadius:16, padding:22, boxShadow:"0 6px 20px rgba(0,0,0,0.07)", position:"relative"}}>
-                    <button 
-                      onClick={(e)=>{e.stopPropagation(); setDeleteConfirm(p);}} 
-                      className="delete-btn" 
-                      style={{position:"absolute", top:12, right:12}}
-                    >
-                      🗑
-                    </button>
-                    
-                    <div onClick={()=>setViewing(p)} style={{cursor:"pointer"}}>
-                      <div style={{fontSize:22, fontWeight:800, marginBottom:8}}>{p.name}</div>
-                      {p.role && <div style={{color:C.textSub, marginBottom:12}}>{p.role}</div>}
-                      
-                      <div style={{display:"flex", gap:8, flexWrap:"wrap", marginBottom:16}}>
-                        {Object.entries(p.scores).map(([k,v]) => (
-                          <div key={k} style={{background:VIRTUES[k].bg, padding:"6px 10px", borderRadius:8, fontSize:14}}>{VIRTUES[k].icon} {v}</div>
-                        ))}
-                      </div>
-
-                      <div style={{marginBottom:12}}>
-                        <div className="progress-bar">
-                          <div className="progress-fill" style={{width: `${combo.progress}%`, background: combo.progress > 80 ? "linear-gradient(90deg,#00b36b,#34d399)" : combo.progress > 50 ? "linear-gradient(90deg,#ff8c00,#ffaa00)" : "#dc3545"}} />
-                        </div>
-                      </div>
-
-                      <div style={{fontSize:13, color:C.textMuted}}>Last updated: {p.lastUpdated ? new Date(p.lastUpdated).toLocaleDateString() : "Never"}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {tab === "playbook" && (
-        <div style={{padding:24, maxWidth:820, margin:"0 auto"}}>
-          <h2 style={{color:C.orange, marginBottom:8}}>The Seven Virtues</h2>
-          <p style={{color:C.textSub, marginBottom:32}}>Fruit of the Spirit applied to youth sports.</p>
-          {Object.values(VIRTUES).map(t => (
-            <div key={t.key} style={{marginBottom:24, background:"#fff", border:`1px solid ${t.border}`, borderRadius:16, padding:24}}>
-              <div style={{display:"flex", alignItems:"center", gap:16}}>
-                <span style={{fontSize:48}}>{t.icon}</span>
-                <div>
-                  <div style={{fontSize:22, fontWeight:800, color:t.color}}>{t.label}</div>
-                  <div style={{color:C.textSub}}>"{t.tagline}"</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {editing && <EditModal person={editing} onSave={saveAthlete} onClose={()=>setEditing(null)} />}
-      {viewing && <PersonDetail person={viewing} onClose={()=>setViewing(null)} onEdit={p=>{setViewing(null); setEditing(p);}} />}
-      {deleteConfirm && <ConfirmDelete name={deleteConfirm.name} onConfirm={()=>deleteAthlete(deleteConfirm.id)} onCancel={()=>setDeleteConfirm(null)} />}
-    </div>
-  );
+  el.innerHTML = '';
+  const container = document.createElement('div');
+  container.style.cssText = 'background:rgba(0,0,0,0.2);border-radius:10px;overflow:hidden;';
+  game.pitches.forEach(p => {
+    const d = document.createElement('div');
+    d.className = 'log-item';
+    const resClass = { Ball: 'res-ball', Strike: 'res-strike', Foul: 'res-foul', 'In Play': 'res-inplay' }[p.result] || '';
+    d.innerHTML = `<span class="log-num">${p.num}</span><span class="log-inning">I${p.inning}</span><span class="log-type">${p.type}</span><span class="log-result ${resClass}">${p.result}</span>`;
+    container.appendChild(d);
+  });
+  el.appendChild(container);
 }
-
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(React.createElement(App));
+ 
+// ─── SAVED GAMES ─────────────────────────────────────────────────────────────
+function loadAllGames() {
+  try { return JSON.parse(localStorage.getItem('pitchTrackerGames') || '[]'); } catch { return []; }
+}
+ 
+function saveCurrentGame() {
+  if (!game) return;
+  const all = loadAllGames();
+  const idx = all.findIndex(g => g.id === game.id);
+  if (idx >= 0) all[idx] = game;
+  else all.push(game);
+  localStorage.setItem('pitchTrackerGames', JSON.stringify(all));
+}
+ 
+function deleteGame(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this game log?')) return;
+  let all = loadAllGames().filter(g => g.id !== id);
+  localStorage.setItem('pitchTrackerGames', JSON.stringify(all));
+  if (game && game.id === id) game = null;
+  renderSavedGames();
+}
+ 
+function renderSavedGames() {
+  const all = loadAllGames().sort((a,b) => b.id - a.id);
+  const el = document.getElementById('savedGamesList');
+  const sec = document.getElementById('savedSection');
+  if (all.length === 0) {
+    sec.style.display = 'none';
+    return;
+  }
+  sec.style.display = 'block';
+  el.innerHTML = all.map(g => {
+    const d = new Date(g.date + 'T12:00:00');
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const limitStr = g.limit ? ` · Limit: ${g.limit}` : '';
+    return `<div class="saved-game" onclick="loadGame('${g.id}')">
+      <div class="saved-game-info">
+        <div class="saved-game-name">${g.pitcher}</div>
+        <div class="saved-game-meta">${dateStr}${limitStr}</div>
+      </div>
+      <div class="saved-game-pitches">${g.pitches.length}</div>
+      <button class="saved-game-delete" onclick="deleteGame('${g.id}', event)">✕</button>
+    </div>`;
+  }).join('');
+}
 </script>
 </body>
 </html>
